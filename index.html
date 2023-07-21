@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<p id="debug"></p>
+
+<!-- Now we need to compile those shaders to put them on the GPU so first we need to get them into strings. -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition; // an attribute will receive data from a buffer
+uniform float u_fudgeFactor; 
+void
+main() {
+    
+    float zToDivideBy = 1.0 + vPosition.z * u_fudgeFactor;// Adjust the z to divide by
+    
+    gl_Position = vec4(vPosition.xyz, zToDivideBy); // Divide x and y by z.
+    // gl_Position is a special variable a vertex shader is responsible for setting
+    // It turns out WebGL takes the x,y,z,w value we assign to gl_Position in our vertex shader and divides it by w automatically.
+    
+}
+</script>
+
+<!-- Now we need to compile those shaders to put them on the GPU so first we need to get them into strings. -->
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float; // fragment shaders don't have a default precision so we need to pick one. mediump is a good default. It means "medium precision"
+void
+main() {
+    // gl_FragColor is a special variable a fragment shaderis responsible for setting
+    gl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );  // every vertex will be shaded red
+}
+</script>
+
+
+<script type="text/javascript" src="Common/webgl-utils.js"></script>
+<script type="text/javascript" src="Common/initShaders.js"></script>
+<script type="text/javascript" src="Common/MV.js"></script>
+<script type="text/javascript" src="cow.js"></script>
+<script type="text/javascript" src="shadingCow.js"></script>
+
+<!-- <link rel="stylesheet" href="style.css"> -->
+
+
+<body>
+<!-- We need a HTML canvas element so that the Javascript can look it up -->
+<canvas id="gl-canvas" width="512" height="512"> 
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+</body>
+</html>
