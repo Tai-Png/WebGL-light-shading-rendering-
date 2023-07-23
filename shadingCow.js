@@ -12,6 +12,15 @@ cowFaces = flatten(cowFaces).map(function (element) {
 var fudgeLocation
 var fudgeFactor
 
+viewMat = lookAt(cam_pos, cow_pos, vec3([0, 1, 0]));
+let projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
+let modelmatrix = mat4(
+                    1.0, 0.0, 0.0, cow_pos[0],
+                    0.0, 1.0, 0.0, cow_pos[1],
+                    0.0, 0.0, 1.0, cow_pos[2],
+                    0.0, 0.0, 0.0, 1.0);
+modelmatrix = mult(mult(rotate(Xtheta,[1,0,0]), mult(rotate(Ytheta,[0,1,0]), rotate(Ztheta,[0,0,1]))),modelmatrix);
+
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); // Looking up the canvas element
     // Canvases just like Images have 2 sizes. The number of pixels actually in them and separately the size they are displayed. CSS determines the size the canvas is displayed. You should always set the size you want a canvas to be with CSS since it is far far more flexible than any other method.
