@@ -6,12 +6,14 @@
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition; // an attribute will receive data from a buffer
 uniform float u_fudgeFactor; 
+uniform mat4 MVP;
 void
 main() {
     
     float zToDivideBy = 1.0 + vPosition.z * u_fudgeFactor;// Adjust the z to divide by
     
-    gl_Position = vec4(vPosition.xyz, zToDivideBy); // Divide x and y by z.
+    gl_Position =  MVP * vec4(vPosition.xyz, 1);
+    //vec4(vPosition.xyz, zToDivideBy); // Divide x and y by z.
     // gl_Position is a special variable a vertex shader is responsible for setting
     // It turns out WebGL takes the x,y,z,w value we assign to gl_Position in our vertex shader and divides it by w automatically.
     

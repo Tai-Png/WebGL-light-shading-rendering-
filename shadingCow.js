@@ -12,14 +12,12 @@ cowFaces = flatten(cowFaces).map(function (element) {
 var fudgeLocation
 var fudgeFactor
 
-viewMat = lookAt(cam_pos, cow_pos, vec3([0, 1, 0]));
-let projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
-let modelmatrix = mat4(
-                    1.0, 0.0, 0.0, cow_pos[0],
-                    0.0, 1.0, 0.0, cow_pos[1],
-                    0.0, 0.0, 1.0, cow_pos[2],
-                    0.0, 0.0, 0.0, 1.0);
-modelmatrix = mult(mult(rotate(Xtheta,[1,0,0]), mult(rotate(Ytheta,[0,1,0]), rotate(Ztheta,[0,0,1]))),modelmatrix);
+var MVP;
+var MVPlocation;
+
+
+
+
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); // Looking up the canvas element
@@ -27,6 +25,12 @@ window.onload = function init() {
     gl = WebGLUtils.setupWebGL( canvas ); // Prof provided code to setup WEBGLcontext easier
     if( !gl ) { alert( "WebGL is not available" ); }
 	gl.viewport( 0, 0, canvas.width, canvas.height ); // We need to tell WebGL how to convert from the clip space values we'll be setting gl_Position to back into pixels, often called screen space. To do this we call gl.viewport and pass it the current size of the canvas. // This tells WebGL the -1 +1 clip space maps to 0 <-> gl.canvas.width for x and 0 <-> gl.canvas.height for y.
+
+
+
+
+
+
 
     // initShaders for programs
     staticProgram = initShaders( gl, "vertex-shader", "fragment-shader" ); // Provided code from prof which creates shaders, uploads the GLSL source and compiles the shader. It also links the 2 shaders into a program and then creates the program 
@@ -45,11 +49,22 @@ window.onload = function init() {
 
     let vPosition = gl.getAttribLocation( staticProgram, "vPosition" ); // Getting vPosition attribute location in the HTML
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 ); // The 4 means that there is 4 components per iteration (i only see 1 right now, where the other 4) vec4 is a 4 float value. In JavaScript you could think of it something like a_position = {x: 0, y: 0, z: 0, w: 0}. In the internet exaple they set size = 2. Attributes default to 0, 0, 0, 1 so this attribute will get its first 2 values (x and y) from our buffer. The z, and w will be the default 0 and 1 respectively.
+    gl.enableVertexAttribArray( vPosition );
+    // fudgeLocation = gl.getUniformLocation(staticProgram, "u_fudgeFactor");
+    // fudgeFactor = 1;
 
-    fudgeLocation = gl.getUniformLocation(staticProgram, "u_fudgeFactor");
-    fudgeFactor = 1;
+    MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
 
-	gl.enableVertexAttribArray( vPosition ); // we need to tell WebGL how to take data from the buffer we setup above and supply it to the attribute in the shader. First off we need to turn the attribute on
+    
+
+    
+
+	// gl.enableVertexAttribArray( vPosition ); // we need to tell WebGL how to take data from the buffer we setup above and supply it to the attribute in the shader. First off we need to turn the attribute on
+
+
+
+    
+
 
 	render();
     // The code up to this point is initialization code. Code that gets run once when we load the page. The code below this point is rendering code or code that should get executed each time we want to render/draw.
@@ -58,9 +73,30 @@ window.onload = function init() {
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor( 0.1, 0.1, 0.1, 1.0 );
+    gl.useProgram(staticProgram);
+
+    
 
     // Set the fudgeFactor
-    gl.uniform1f(fudgeLocation, fudgeFactor);
+    // gl.uniform1f(fudgeLocation, fudgeFactor);
+    let cam_pos = vec3(0, 0, 30);
+    let cow_pos = vec3(0, 0, 0);
+    
+    let viewMatrix = lookAt(cam_pos, cow_pos, vec3([0, 1, 0]));
+
+    let fov = 20;
+    let projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
+
+    let modelmatrix = mat4(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1);
+
+    let MVP = mat4();
+    MVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
+
+    gl.uniformMatrix4fv(MVPlocation, false, flatten(MVP));
 
     gl.drawElements(gl.TRIANGLES, cowVertices.length, gl.UNSIGNED_SHORT, 0);
 }
