@@ -21,7 +21,7 @@ window.onload = function init() {
 
     // initShaders for programs
     staticProgram = initShaders( gl, "vertex-shader", "fragment-shader" ); // Provided code from prof which creates shaders, uploads the GLSL source and compiles the shader. It also links the 2 shaders into a program and then creates the program 
-
+    gl.enable(gl.DEPTH_TEST);
     gl.useProgram( staticProgram );
 
     // Attributes get their data from buffers so we need to Create a buffer
