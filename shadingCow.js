@@ -79,5 +79,5 @@ function render() {
 
     gl.uniformMatrix4fv(MVPlocation, false, flatten(MVP));
 
-    gl.drawElements(gl.TRIANGLES, cowVertices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, cowFaces.length, gl.UNSIGNED_SHORT, 0);
 }
