@@ -48,7 +48,7 @@ window.onload = function init() {
 
 
     vPosition = gl.getAttribLocation( staticProgram, "vPosition" ); 
-    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 ); 
+    gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 ); 
     gl.enableVertexAttribArray( vPosition );
 
     MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
@@ -61,7 +61,7 @@ function render() {
     gl.clearColor( 0.1, 0.1, 0.1, 1.0 );
     gl.useProgram(staticProgram);
 
-    cam_pos = vec3(50, 20, 10);
+    cam_pos = vec3(0, 0, 30);
     cow_pos = vec3(0, 0, 0);
     
     viewMatrix = lookAt(cam_pos, cow_pos, vec3([0, 1, 0]));
