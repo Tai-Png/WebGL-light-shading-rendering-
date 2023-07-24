@@ -34,18 +34,19 @@ var cowZ = 0;
 var initialCowX = 0;
 var initialCowY = 0;
 var initialCowZ = 0;
-// Variables for rotation angles (in degrees)
 var rotationX = 0;
 var rotationY = 0;
 var rotationZ = 0;
 var isRightMouseBtnPressed = false;
 var toggleRightMouseBtn = false;
+
+
+
 function resetCow() {
     cowX = initialCowX;
     cowY = initialCowY;
     cowZ = initialCowZ;
 
-    // Reset rotation angles
     rotationX = 0;
     rotationY = 0;
     rotationZ = 0;
@@ -57,7 +58,6 @@ document.oncontextmenu = (event) => {
     event.preventDefault();
 };
 
-
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); 
     gl = WebGLUtils.setupWebGL( canvas );
@@ -66,42 +66,42 @@ window.onload = function init() {
 
 
     canvas.addEventListener("mousemove", function(event) {
-        if (event.buttons === 2) { // Right mouse button is pressed
-            rotationY += event.movementX; // Y rotation (horizontal movement)
-            rotationX += event.movementY; // X rotation (vertical movement)
+        if (event.buttons === 2) { 
+            rotationY += event.movementX; 
+            rotationX += event.movementY; 
             render();
         }
     });
 
-    // Event listener to handle keyboard input
+    
     document.addEventListener("keydown", function(event) {
         if (event.key === "ArrowLeft") {
-            rotationZ += 6; // Z rotation (left arrow key)
+            rotationZ += 6; 
             render();
         } else if (event.key === "ArrowRight") {
-            rotationZ -= 6; // Z rotation (right arrow key)
+            rotationZ -= 6; 
             render();
         } else if (event.key === "r" || event.key === "R") {
-            resetCow(); // Reset the cow's position and orientation (key "r")
+            resetCow(); 
         }
     });
 
-    // Event listener to handle mouse movement
+    
     canvas.addEventListener("mousemove", function(event) {
-        if (event.buttons === 1) { // Left mouse button is pressed
-            cowX += event.movementX/50; // Adjust the translation speed as needed
-            cowY -= event.movementY/50; // Invert Y direction for more intuitive movement
+        if (event.buttons === 1) { 
+            cowX += event.movementX/50; 
+            cowY -= event.movementY/50; 
             render();
         }
     });
 
-    // Event listener to handle keyboard input (up and down arrow keys)
+
     document.addEventListener("keydown", function(event) {
         if (event.key === "ArrowUp") {
-            cowZ += 1; // Adjust the translation speed as needed
+            cowZ += 1; 
             render();
         } else if (event.key === "ArrowDown") {
-                    cowZ -= 1; // Adjust the translation speed as needed
+                    cowZ -= 1; 
                     render();
                 }
     });
@@ -125,7 +125,6 @@ window.onload = function init() {
 
     MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
 
-    // Store the initial cow position for the reset function
     initialCowX = cowX;
     initialCowY = cowY;
     initialCowZ = cowZ;
@@ -147,7 +146,6 @@ function render() {
     fov = 30;
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
 
-    // Apply rotations using Euler angles to the model matrix
     modelmatrix = mat4(
         1, 0, 0, cowX,
         0, 1, 0, cowY,
