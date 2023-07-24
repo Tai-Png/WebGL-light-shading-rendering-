@@ -38,6 +38,8 @@ var initialCowZ = 0;
 var rotationX = 0;
 var rotationY = 0;
 var rotationZ = 0;
+var isRightMouseBtnPressed = false;
+var toggleRightMouseBtn = false;
 function resetCow() {
     cowX = initialCowX;
     cowY = initialCowY;
@@ -59,19 +61,15 @@ window.onload = function init() {
 	gl.viewport( 0, 0, canvas.width, canvas.height );
 
     // Event listener to handle mouse movement for rotation
-    var isRightMouseBtnPressed = false;
     canvas.addEventListener("mousedown", function(event) {
         if (event.button === 2) { // Right mouse button is pressed
-            isRightMouseBtnPressed = true;
-        }
-    });
-    canvas.addEventListener("mouseup", function(event) {
-        if (event.button === 2) { // Right mouse button is released
-            isRightMouseBtnPressed = false;
+            toggleRightMouseBtn = !toggleRightMouseBtn;
+            isRightMouseBtnPressed = toggleRightMouseBtn;
+            console.log(isRightMouseBtnPressed);
         }
     });
     canvas.addEventListener("mousemove", function(event) {
-        if (isRightMouseBtnPressed) {
+        if (isRightMouseBtnPressed) { // Right mouse button is pressed
             rotationY += event.movementX; // Y rotation (horizontal movement)
             rotationX += event.movementY; // X rotation (vertical movement)
             render();
