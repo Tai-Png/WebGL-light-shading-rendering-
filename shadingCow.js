@@ -31,6 +31,25 @@ var modelmatrix;
 var cowX = 0;
 var cowY = 0;
 var cowZ = 0;
+var initialCowX = 0;
+var initialCowY = 0;
+var initialCowZ = 0;
+// Variables for rotation angles (in degrees)
+var rotationX = 0;
+var rotationY = 0;
+var rotationZ = 0;
+function resetCow() {
+    cowX = initialCowX;
+    cowY = initialCowY;
+    cowZ = initialCowZ;
+
+    // Reset rotation angles
+    rotationX = 0;
+    rotationY = 0;
+    rotationZ = 0;
+
+    render();
+}
 
 
 window.onload = function init() {
@@ -38,6 +57,39 @@ window.onload = function init() {
     gl = WebGLUtils.setupWebGL( canvas );
     if( !gl ) { alert( "WebGL is not available" ); }
 	gl.viewport( 0, 0, canvas.width, canvas.height );
+
+    // Event listener to handle mouse movement for rotation
+    var isRightMouseBtnPressed = false;
+    canvas.addEventListener("mousedown", function(event) {
+        if (event.button === 2) { // Right mouse button is pressed
+            isRightMouseBtnPressed = true;
+        }
+    });
+    canvas.addEventListener("mouseup", function(event) {
+        if (event.button === 2) { // Right mouse button is released
+            isRightMouseBtnPressed = false;
+        }
+    });
+    canvas.addEventListener("mousemove", function(event) {
+        if (isRightMouseBtnPressed) {
+            rotationY += event.movementX; // Y rotation (horizontal movement)
+            rotationX += event.movementY; // X rotation (vertical movement)
+            render();
+        }
+    });
+
+    // Event listener to handle keyboard input
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "ArrowLeft") {
+            rotationZ += 1; // Z rotation (left arrow key)
+            render();
+        } else if (event.key === "ArrowRight") {
+            rotationZ -= 1; // Z rotation (right arrow key)
+            render();
+        } else if (event.key === "r" || event.key === "R") {
+            resetCow(); // Reset the cow's position and orientation (key "r")
+        }
+    });
 
     // Event listener to handle mouse movement
     canvas.addEventListener("mousemove", function(event) {
@@ -78,6 +130,11 @@ window.onload = function init() {
 
     MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
 
+    // Store the initial cow position for the reset function
+    initialCowX = cowX;
+    initialCowY = cowY;
+    initialCowZ = cowZ;
+
 	render();
 }
 
@@ -91,16 +148,19 @@ function render() {
     cow_initial_pos = vec3(0, 0, 0)
     
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
-    // NOTE: the lookAt function was initially set to cow_pos instead of cow_inital_pos this is an important change because cow_pos means that the camera will constantly be looking at the cow and therefore the cow will appear to rotate. 
-    // I believe the assignment only wants the cow to translate but the camera does not track it. So I changed it
 
     fov = 30;
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
+
+    // Apply rotations using Euler angles to the model matrix
     modelmatrix = mat4(
         1, 0, 0, cowX,
         0, 1, 0, cowY,
         0, 0, 1, cowZ,
-        0, 0, 0, 1);
+        0, 0, 0, 1
+    );
+    modelmatrix = mult(mult(rotate(rotationX, [1, 0, 0]), rotate(rotationY, [0, 1, 0])), rotate(rotationZ, [0, 0, 1]));
+    modelmatrix = mult(modelmatrix, translate(cowX, cowY, cowZ));
 
     MVP = mat4();
     MVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
