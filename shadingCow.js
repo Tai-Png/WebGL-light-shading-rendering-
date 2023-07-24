@@ -21,6 +21,7 @@ var MVP;
 var MVPlocation;
 var cam_pos;
 var cow_pos;
+var cow_initial_pos;
 var viewMatrix;
 var fov;
 var projectionMatrix;
@@ -41,8 +42,8 @@ window.onload = function init() {
     // Event listener to handle mouse movement
     canvas.addEventListener("mousemove", function(event) {
         if (event.buttons === 1) { // Left mouse button is pressed
-            cowX -= event.movementX / 100; // Adjust the translation speed as needed
-            cowY += event.movementY / 100; // Invert Y direction for more intuitive movement
+            cowX += event.movementX/50; // Adjust the translation speed as needed
+            cowY -= event.movementY/50; // Invert Y direction for more intuitive movement
             render();
         }
     });
@@ -87,15 +88,18 @@ function render() {
 
     cam_pos = vec3(0, 0, 30);
     cow_pos = vec3(cowX, cowY, cowZ);
+    cow_initial_pos = vec3(0, 0, 0)
     
-    viewMatrix = lookAt(cam_pos, cow_pos, vec3([0, 1, 0]));
+    viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
+    // NOTE: the lookAt function was initially set to cow_pos instead of cow_inital_pos this is an important change because cow_pos means that the camera will constantly be looking at the cow and therefore the cow will appear to rotate. 
+    // I believe the assignment only wants the cow to translate but the camera does not track it. So I changed it
 
     fov = 30;
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
     modelmatrix = mat4(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
+        1, 0, 0, cowX,
+        0, 1, 0, cowY,
+        0, 0, 1, cowZ,
         0, 0, 0, 1);
 
     MVP = mat4();
