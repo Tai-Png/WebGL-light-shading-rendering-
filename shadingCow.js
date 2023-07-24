@@ -53,6 +53,10 @@ function resetCow() {
     render();
 }
 
+document.oncontextmenu = (event) => {
+    event.preventDefault();
+};
+
 
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); 
@@ -60,16 +64,9 @@ window.onload = function init() {
     if( !gl ) { alert( "WebGL is not available" ); }
 	gl.viewport( 0, 0, canvas.width, canvas.height );
 
-    // Event listener to handle mouse movement for rotation
-    canvas.addEventListener("mousedown", function(event) {
-        if (event.button === 2) { // Right mouse button is pressed
-            toggleRightMouseBtn = !toggleRightMouseBtn;
-            isRightMouseBtnPressed = toggleRightMouseBtn;
-            console.log(isRightMouseBtnPressed);
-        }
-    });
+
     canvas.addEventListener("mousemove", function(event) {
-        if (isRightMouseBtnPressed) { // Right mouse button is pressed
+        if (event.buttons === 2) { // Right mouse button is pressed
             rotationY += event.movementX; // Y rotation (horizontal movement)
             rotationX += event.movementY; // X rotation (vertical movement)
             render();
