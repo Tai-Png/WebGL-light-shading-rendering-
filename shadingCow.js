@@ -76,10 +76,10 @@ window.onload = function init() {
     // Event listener to handle keyboard input
     document.addEventListener("keydown", function(event) {
         if (event.key === "ArrowLeft") {
-            rotationZ += 1; // Z rotation (left arrow key)
+            rotationZ += 6; // Z rotation (left arrow key)
             render();
         } else if (event.key === "ArrowRight") {
-            rotationZ -= 1; // Z rotation (right arrow key)
+            rotationZ -= 6; // Z rotation (right arrow key)
             render();
         } else if (event.key === "r" || event.key === "R") {
             resetCow(); // Reset the cow's position and orientation (key "r")
