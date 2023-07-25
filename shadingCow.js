@@ -178,7 +178,7 @@ window.onload = function init() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pointLightIndices), gl.STATIC_DRAW);
 
-    setInterval(rotateCube, 100);
+    setInterval(rotateCube, 10);
 
 	render();
 }
@@ -196,9 +196,9 @@ function render() {
 
 function rotateCube(){
     if(autoRotatePointLight) {
-        pointlightZ = r * Math.cos(t);
-        pointLightX = r * Math.sin(t);
-        t += 0.1;
+        pointlightZ = r * Math.cos(-t);
+        pointLightX = r * Math.sin(-t);
+        t += 0.01;
         render();    
     }
     
