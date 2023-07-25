@@ -16,7 +16,9 @@ var lightWorldPositionLocation;
 var worldLocation;
 var viewWorldPositionLocation;
 var shininessLocation;
-var shininess = 200;
+var shininess = 50;
+var lightColorLocation; 
+var specularColorLocation; 
 
 var vao;
 var cowProgram;
@@ -24,7 +26,7 @@ var cowIBuffer;
 var cowVBuffer;
 var cowVPosition;
 var cowVColor;
-var cowColor = vec4(1, 0.5, 0.5, 1);
+var cowColor = vec4(0, 0, 1, 1);
 var cowVertices = get_vertices();
 var cowFaces = get_faces();
 cowFaces = flatten(cowFaces).map(function (element) {
@@ -152,6 +154,8 @@ window.onload = function init() {
     pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
     viewWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_viewWorldPosition");
     shininessLocation = gl.getUniformLocation(cowProgram, "u_shininess");
+    lightColorLocation = gl.getUniformLocation(cowProgram, "u_lightColor");
+    specularColorLocation = gl.getUniformLocation(cowProgram, "u_specularColor");
 
     // Enable attribArrays
     gl.enableVertexAttribArray( cowVPosition );
@@ -239,6 +243,8 @@ function drawCow() {
     gl.uniform4fv(cowVColor, cowColor);
     gl.uniform3fv(viewWorldPositionLocation, cam_pos);
     gl.uniform1f(shininessLocation, shininess);
+    gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
+    gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
 
     // Cow math
     cow_pos = vec3(cowX, cowY, cowZ);
