@@ -10,6 +10,7 @@ var fov;
 var modelmatrix;
 var viewMatrix;
 var projectionMatrix;
+var worldLocation;
 
 var cowProgram;
 var cowIBuffer;
@@ -137,7 +138,7 @@ window.onload = function init() {
     cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
     cowVColor = gl.getUniformLocation(cowProgram, "vColor");
     reverseLightDirectionLocation = gl.getUniformLocation(cowProgram, "u_reverseLightDirection");
-
+    worldLocation = gl.getUniformLocation(cowProgram, "u_world");
 
     // Cow program buffer
     cowVBuffer = gl.createBuffer();
@@ -223,7 +224,7 @@ function drawCow() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1]));
+    gl.uniform3fv(reverseLightDirectionLocation, normalize([8, 5, 5]));
     gl.uniform4fv(cowVColor, cowColor);
 
     // Cow math
@@ -243,6 +244,8 @@ function drawCow() {
     );
     modelmatrix = mult(mult(rotate(cowRotationX, [1, 0, 0]), rotate(cowRotationY, [0, 1, 0])), rotate(cowRotationZ, [0, 0, 1]));
     modelmatrix = mult(modelmatrix, translate(cowX, cowY, cowZ));
+    gl.uniformMatrix4fv(worldLocation, false, flatten(modelmatrix)); // send modelmatrix to u_world in html file
+
 
     cowMVP = mat4();
     cowMVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
