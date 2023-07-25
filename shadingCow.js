@@ -11,6 +11,9 @@ var modelmatrix;
 var viewMatrix;
 var projectionMatrix;
 var worldInverseTransposeLocation;
+var reverseLightDirectionLocation;
+var lightWorldPositionLocation;
+var worldLocation;
 
 var vao;
 var cowProgram;
@@ -39,7 +42,6 @@ var cowMVPlocation;
 var normalLocation;
 var cow_pos;
 var cow_initial_pos = vec3(0, 0, 0);
-
 var cowNormals;
 var normalBuffer;
 
@@ -66,13 +68,15 @@ var t = (Math.PI)/3;
 var r = 10;
 
 
-var reverseLightDirectionLocation;
-var lightWorldPositionLocation;
-var worldLocation;
 
 document.oncontextmenu = (event) => {
     event.preventDefault();
 };
+
+
+
+
+
 // ------------------------------------ INIT ---------------------------------------
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); 
@@ -225,7 +229,7 @@ function drawCow() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.uniform3fv(lightWorldPositionLocation, normalize([8, 5, 5]));
+    gl.uniform3fv(lightWorldPositionLocation, ([pointLightX, pointLightY, pointlightZ]));
     gl.uniform4fv(cowVColor, cowColor);
 
     // Cow math
