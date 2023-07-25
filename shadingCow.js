@@ -18,10 +18,11 @@ var cowVPosition;
 var cowVColor;
 var cowColor = vec4(1, 0.5, 0.5, 1);
 var cowVertices = get_vertices();
-let cowFaces = get_faces();
+var cowFaces = get_faces();
 cowFaces = flatten(cowFaces).map(function (element) {
     return element - 1;
 });
+var cowFaces2 = get_faces();
 var cowX = 0;
 var cowY = 0;
 var cowZ = 0;
@@ -67,6 +68,8 @@ var pointLightMVP;
 var pointLightVColor;
 var pointLightColor = vec4(0, 0, 1, 1);
 
+
+var reverseLightDirectionLocation;
 
 document.oncontextmenu = (event) => {
     event.preventDefault();
@@ -120,23 +123,45 @@ window.onload = function init() {
                 }
     });
 
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);    
-    gl.cullFace(gl.BACK);   
+ 
 
     // initShaders
     cowProgram = initShaders( gl, "vertex-shader", "fragment-shader" );
     pointLightProgram = initShaders( gl, "vertex-shader", "fragment-shader" );
 
+    // Attribute locations
+    cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" );
+    var normalLocation = gl.getAttribLocation(cowProgram, "a_normal");
+
+    // Uniform locations
+    cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
+    cowVColor = gl.getUniformLocation(cowProgram, "vColor");
+    reverseLightDirectionLocation = gl.getUniformLocation(cowProgram, "u_reverseLightDirection");
+
+
     // Cow program buffer
     cowVBuffer = gl.createBuffer();
+
+    var vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    
+    gl.enableVertexAttribArray( cowVPosition );
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(cowVertices), gl.STATIC_DRAW); 
-    cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" );
-    gl.vertexAttribPointer( cowVPosition, 3, gl.FLOAT, false, 0, 0 ); 
-    gl.enableVertexAttribArray( cowVPosition );
-    cowVColor = gl.getUniformLocation(cowProgram, "vColor");
-    cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
+    gl.vertexAttribPointer( cowVPosition, 3, gl.FLOAT, false, 0, 0 );
+
+    // Create buffer for normals
+    var normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    // Caculate normals
+    cowNormals = calculateNormals();
+    gl.bufferData(gl.ARRAY_BUFFER, cowNormals, gl.STATIC_DRAW);
+
+    gl.enableVertexAttribArray(normalLocation);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+
+ 
+    // set the light direction.
 
     cowIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
@@ -161,6 +186,9 @@ window.onload = function init() {
 }
 
 function render() {
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);    
+    gl.cullFace(gl.BACK);  
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor( 0, 0, 0, 0.5 );
 
@@ -170,15 +198,15 @@ function render() {
     
 }
 
-function computeNormals() {
+function calculateNormals() {
     cowNormals = Array(cowVertices.length);
-    cowFaces.forEach((e) => {
+    cowFaces2.forEach((e) => {
         let v1 = normalize(subtract(cowVertices[e[0]-1],cowVertices[e[1]-1]));
         let v2 = normalize(subtract(cowVertices[e[0]-1],cowVertices[e[2]-1]));
         let norm = normalize(cross(v1,v2));
         for(let i = 0; i < 3; i++) {
-            if (cowNormals[e[i]-1]){
-                cowNormals[e[i]-1] = add(cowNormals[e[i]-1],norm).map(z=>z/2);
+            if (cowNormals[e[i]]){
+                cowNormals[e[i]] = add(cowNormals[e[i]-1],norm).map(z=>z/2);
             }else{
                 cowNormals[e[i]-1] = vec3(...norm);
             }
@@ -195,6 +223,7 @@ function drawCow() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1]));
     gl.uniform4fv(cowVColor, cowColor);
 
     // Cow math
