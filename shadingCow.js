@@ -6,11 +6,11 @@ var isRightMouseBtnPressed = false;
 var toggleRightMouseBtn = false;
 
 var cam_pos;
-var fov;
+var fov = 40;
 var modelmatrix;
 var viewMatrix;
 var projectionMatrix;
-var worldLocation;
+var worldInverseTransposeLocation;
 
 var cowProgram;
 var cowIBuffer;
@@ -68,9 +68,13 @@ var pointLightMVPlocation;
 var pointLightMVP;
 var pointLightVColor;
 var pointLightColor = vec4(0, 0, 1, 1);
+var autoRotatePointLight = true;
+var pointLightRotationSpeed = 5; // Adjust the rotation speed as needed
 
 
 var reverseLightDirectionLocation;
+var lightWorldPositionLocation;
+var worldLocation;
 
 document.oncontextmenu = (event) => {
     event.preventDefault();
@@ -104,6 +108,11 @@ window.onload = function init() {
         }
     });
 
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "p" || event.key === "P") {
+            autoRotatePointLight = !autoRotatePointLight;   
+        }
+    });
     
     canvas.addEventListener("mousemove", function(event) {
         if (event.buttons === 1) { 
@@ -124,8 +133,6 @@ window.onload = function init() {
                 }
     });
 
- 
-
     // initShaders
     cowProgram = initShaders( gl, "vertex-shader", "fragment-shader" );
     pointLightProgram = initShaders( gl, "vertex-shader", "fragment-shader" );
@@ -134,14 +141,24 @@ window.onload = function init() {
     cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" );
     var normalLocation = gl.getAttribLocation(cowProgram, "a_normal");
 
+    pointLightVPosition = gl.getAttribLocation( pointLightProgram, "vPosition");
+
+
     // Uniform locations
     cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
     cowVColor = gl.getUniformLocation(cowProgram, "vColor");
-    reverseLightDirectionLocation = gl.getUniformLocation(cowProgram, "u_reverseLightDirection");
+    lightWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_lightWorldPosition");
+    worldInverseTransposeLocation = gl.getUniformLocation(cowProgram, "u_worldInverseTranspose");
     worldLocation = gl.getUniformLocation(cowProgram, "u_world");
+
+    pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
+
+
 
     // Cow program buffer
     cowVBuffer = gl.createBuffer();
+    pointLightVBuffer = gl.createBuffer();
+
 
     var vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -161,26 +178,25 @@ window.onload = function init() {
     gl.enableVertexAttribArray(normalLocation);
     gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
 
- 
-    // set the light direction.
 
     cowIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cowFaces), gl.STATIC_DRAW);
 
     // pointLight program buffer
-    pointLightVBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, pointLightVBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(pointLightVertices), gl.STATIC_DRAW);
-    pointLightVPosition = gl.getAttribLocation( pointLightProgram, "vPosition");
     gl.vertexAttribPointer( pointLightVPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(pointLightVPosition);
-    pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
     pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
 
     pointLightIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pointLightIndices), gl.STATIC_DRAW);
+
+    
+
+    setInterval(rotateCube, 500);
 
 
 	render();
@@ -197,6 +213,13 @@ function render() {
 
     drawPointLight();
     
+}
+
+function rotateCube(){
+    if(autoRotatePointLight) {
+        pointLightRotationY += pointLightRotationSpeed; 
+        render();
+    }
 }
 
 function calculateNormals() {
@@ -224,13 +247,13 @@ function drawCow() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.uniform3fv(reverseLightDirectionLocation, normalize([8, 5, 5]));
+    gl.uniform3fv(lightWorldPositionLocation, normalize([8, 5, 5]));
     gl.uniform4fv(cowVColor, cowColor);
 
     // Cow math
     cam_pos = vec3(0, 0, 30);
     cow_pos = vec3(cowX, cowY, cowZ);
-    fov = 30;
+
 
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
     
@@ -244,8 +267,12 @@ function drawCow() {
     );
     modelmatrix = mult(mult(rotate(cowRotationX, [1, 0, 0]), rotate(cowRotationY, [0, 1, 0])), rotate(cowRotationZ, [0, 0, 1]));
     modelmatrix = mult(modelmatrix, translate(cowX, cowY, cowZ));
-    gl.uniformMatrix4fv(worldLocation, false, flatten(modelmatrix)); // send modelmatrix to u_world in html file
-
+    var worldInverseMatrix = inverse(modelmatrix);
+    var worldInverseTransposeMatrix = transpose(worldInverseMatrix);
+    
+    gl.uniformMatrix4fv(worldLocation, false, flatten(modelmatrix));
+    gl.uniformMatrix4fv(worldInverseTransposeLocation, false, flatten(worldInverseTransposeMatrix)); // send modelmatrix to u_world in html file
+    
 
     cowMVP = mat4();
     cowMVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
@@ -265,11 +292,9 @@ function drawPointLight(){
 
     // pointLight math
     cam_pos = vec3(0, 0, 30);
-    cow_pos = vec3(pointLightX, pointLightY, pointlightZ);
+    pointLightPos = vec3(pointLightX, pointLightY, pointlightZ);
     pointLight_initial_pos = vec3(8, 5, 5);
-    fov = 30;
 
-    viewMatrix = lookAt(cam_pos, pointLight_initial_pos, vec3([0, 1, 0]));
     
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
 
@@ -281,6 +306,7 @@ function drawPointLight(){
     );
     modelmatrix = mult(mult(rotate(pointLightRotationX, [1, 0, 0]), rotate(pointLightRotationY, [0, 1, 0])), rotate(pointLightRotationZ, [0, 0, 1]));
     modelmatrix = mult(modelmatrix, translate(pointLightX, pointLightY, pointlightZ));
+    viewMatrix = lookAt(cam_pos, pointLight_initial_pos, vec3([0, 1, 0]));
 
     pointLightMVP = mat4();
     pointLightMVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
