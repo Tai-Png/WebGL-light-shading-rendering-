@@ -12,6 +12,7 @@ var viewMatrix;
 var projectionMatrix;
 var worldInverseTransposeLocation;
 
+var vao;
 var cowProgram;
 var cowIBuffer;
 var cowVBuffer;
@@ -35,20 +36,12 @@ var cowRotationY = 0;
 var cowRotationZ = 0;
 var cowMVP;
 var cowMVPlocation;
+var normalLocation;
 var cow_pos;
 var cow_initial_pos = vec3(0, 0, 0);
-function resetCow() {
-    cowX = initialCowX;
-    cowY = initialCowY;
-    cowZ = initialCowZ;
 
-    cowRotationX = 0;
-    cowRotationY = 0;
-    cowRotationZ = 0;
-
-    render();
-}
 var cowNormals;
+var normalBuffer;
 
 var pointLight_initial_pos = vec3(8, 5, 5);
 var pointLightX = 8;
@@ -80,7 +73,7 @@ var worldLocation;
 document.oncontextmenu = (event) => {
     event.preventDefault();
 };
-
+// ------------------------------------ INIT ---------------------------------------
 window.onload = function init() {
     canvas = document.getElementById( "gl-canvas" ); 
     gl = WebGLUtils.setupWebGL( canvas );
@@ -119,7 +112,6 @@ window.onload = function init() {
         if (event.buttons === 1) { 
             cowX += event.movementX/50; 
             cowY -= event.movementY/50; 
-            // pointLightX += event.movementX/50; 
             render();
         }
     });
@@ -141,58 +133,44 @@ window.onload = function init() {
 
     // Attribute locations
     cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" );
-    var normalLocation = gl.getAttribLocation(cowProgram, "a_normal");
-
+    normalLocation = gl.getAttribLocation(cowProgram, "a_normal");
     pointLightVPosition = gl.getAttribLocation( pointLightProgram, "vPosition");
-
-
     // Uniform locations
     cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
     cowVColor = gl.getUniformLocation(cowProgram, "vColor");
     lightWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_lightWorldPosition");
     worldInverseTransposeLocation = gl.getUniformLocation(cowProgram, "u_worldInverseTranspose");
     worldLocation = gl.getUniformLocation(cowProgram, "u_world");
-
     pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
+    pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
 
-
-
-    // Cow program buffer
-    cowVBuffer = gl.createBuffer();
-    pointLightVBuffer = gl.createBuffer();
-
-
-    var vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-    
+    // Enable attribArrays
     gl.enableVertexAttribArray( cowVPosition );
+    gl.enableVertexAttribArray(normalLocation);
+    gl.enableVertexAttribArray(pointLightVPosition);
+
+    // Create buffer
+    cowVBuffer = gl.createBuffer();
+    cowIBuffer = gl.createBuffer();
+    normalBuffer = gl.createBuffer();
+    pointLightVBuffer = gl.createBuffer();
+    pointLightIBuffer = gl.createBuffer();
+
+    // Populate Cow buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(cowVertices), gl.STATIC_DRAW); 
-    gl.vertexAttribPointer( cowVPosition, 3, gl.FLOAT, false, 0, 0 );
-
-    // Create buffer for normals
-    var normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    // Caculate normals
-    cowNormals = calculateNormals();
-    gl.bufferData(gl.ARRAY_BUFFER, cowNormals, gl.STATIC_DRAW);
-
-    gl.enableVertexAttribArray(normalLocation);
-    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
-
-
-    cowIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cowFaces), gl.STATIC_DRAW);
 
-    // pointLight program buffer
+    // Populate normal buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    cowNormals = calculateNormals();
+    gl.bufferData(gl.ARRAY_BUFFER, cowNormals, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+    
+    // Populate pointLight buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, pointLightVBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(pointLightVertices), gl.STATIC_DRAW);
-    gl.vertexAttribPointer( pointLightVPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(pointLightVPosition);
-    pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
-
-    pointLightIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pointLightIndices), gl.STATIC_DRAW);
 
@@ -200,7 +178,7 @@ window.onload = function init() {
 
 	render();
 }
-
+// ------------------------------------ RENDER ---------------------------------------
 function render() {
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);    
@@ -243,7 +221,7 @@ function calculateNormals() {
 function drawCow() {
     // cowProgram stuff
     gl.useProgram(cowProgram);
-    gl.enableVertexAttribArray(cowVPosition);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
@@ -253,7 +231,6 @@ function drawCow() {
     // Cow math
     cam_pos = vec3(0, 0, 30);
     cow_pos = vec3(cowX, cowY, cowZ);
-
 
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
     
@@ -284,7 +261,6 @@ function drawCow() {
 function drawPointLight(){
     // pointLightProgram stuff
     gl.useProgram(pointLightProgram);
-    gl.enableVertexAttribArray(pointLightVPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, pointLightVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.vertexAttribPointer( pointLightVPosition, 3, gl.FLOAT, false, 0, 0);
@@ -297,13 +273,7 @@ function drawPointLight(){
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
     
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
-// Matteo said that model should be identity so ill try
-    // modelmatrix = mat4(      
-    //     1, 0, 0, pointLightX,
-    //     0, 1, 0, pointLightY,
-    //     0, 0, 1, pointlightZ,
-    //     0, 0, 0, 1
-    // );
+
     modelmatrix = mat4(
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -311,9 +281,6 @@ function drawPointLight(){
         0, 0, 0, 1
     );
     modelmatrix = mult(mult(rotate(pointLightRotationX, [1, 0, 0]), rotate(pointLightRotationY, [0, 1, 0])), rotate(pointLightRotationZ, [0, 0, 1]));
-    console.log(pointLightX);
-    console.log(pointLightY);
-    console.log(pointlightZ);
 
     modelmatrix = mult(modelmatrix, translate(pointLightX, pointLightY, pointlightZ));
 
@@ -356,4 +323,15 @@ function getPointLightIndices(){
         2, 6,
         3, 7,
     ];
+}
+function resetCow() {
+    cowX = initialCowX;
+    cowY = initialCowY;
+    cowZ = initialCowZ;
+
+    cowRotationX = 0;
+    cowRotationY = 0;
+    cowRotationZ = 0;
+
+    render();
 }
