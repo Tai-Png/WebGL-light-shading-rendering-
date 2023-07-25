@@ -6,23 +6,29 @@
 <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
     in vec4 vPosition; 
     in vec3 a_normal;
-    uniform mat4 MVP; // Resource calls it u_worldViewProjection
-    uniform mat4 u_worldInverseTranspose;
-    out vec3 v_normal;
+
     uniform vec3 u_lightWorldPosition;
+    uniform vec3 u_viewWorldPosition;
+
+    uniform mat4 MVP; // Resource calls it u_worldViewProjection
     uniform mat4 u_world;
+    uniform mat4 u_worldInverseTranspose;
+
     out vec3 v_surfaceToLight;
+    out vec3 v_normal;
+    out vec3 v_surfaceToView;
 
     void main() {
         
             gl_Position =  MVP * vPosition;
+
             v_normal = mat3(u_worldInverseTranspose) * a_normal;
-            // compute the world position of the surface
+
             vec3 surfaceWorldPosition = (u_world * vPosition).xyz;
- 
-            // compute the vector of the surface to the light
-            // and pass it to the fragment shader
+
             v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
+            v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
     }
 </script>
 
@@ -31,20 +37,31 @@
 <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
     precision highp float;
     in vec3 v_normal;
+    in vec3 v_surfaceToLight;
+    in vec3 v_surfaceToView;
 
     uniform vec4 vColor;
+    uniform float u_shininess;
+    
     out vec4 outColor;
-    in vec3 v_surfaceToLight;
 
     void main() {
         vec3 normal = normalize(v_normal);
         vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+        vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+        vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
 
-        float light = dot(v_normal, surfaceToLightDirection);
+        float light = dot(normal, surfaceToLightDirection);
+        float specular = 0.0;
+        if (light > 0.0) {
+          specular = pow(dot(normal, halfVector), u_shininess);
+        }
 
         outColor = vColor;
 
         outColor.rgb *= light;
+
+        outColor.rgb += specular;
     }
 </script>
 

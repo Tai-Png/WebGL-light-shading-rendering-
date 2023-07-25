@@ -5,7 +5,7 @@ var gl;
 var isRightMouseBtnPressed = false;
 var toggleRightMouseBtn = false;
 
-var cam_pos;
+var cam_pos = vec3(0, 0, 30);
 var fov = 40;
 var modelmatrix;
 var viewMatrix;
@@ -14,6 +14,9 @@ var worldInverseTransposeLocation;
 var reverseLightDirectionLocation;
 var lightWorldPositionLocation;
 var worldLocation;
+var viewWorldPositionLocation;
+var shininessLocation;
+var shininess = 200;
 
 var vao;
 var cowProgram;
@@ -147,6 +150,8 @@ window.onload = function init() {
     worldLocation = gl.getUniformLocation(cowProgram, "u_world");
     pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
     pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
+    viewWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_viewWorldPosition");
+    shininessLocation = gl.getUniformLocation(cowProgram, "u_shininess");
 
     // Enable attribArrays
     gl.enableVertexAttribArray( cowVPosition );
@@ -201,7 +206,6 @@ function rotateCube(){
         t += 0.01;
         render();    
     }
-    
 }
 
 function calculateNormals() {
@@ -229,11 +233,14 @@ function drawCow() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cowIBuffer);
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
+
+    // Sending values to HTML
     gl.uniform3fv(lightWorldPositionLocation, ([pointLightX, pointLightY, pointlightZ]));
     gl.uniform4fv(cowVColor, cowColor);
+    gl.uniform3fv(viewWorldPositionLocation, cam_pos);
+    gl.uniform1f(shininessLocation, shininess);
 
     // Cow math
-    cam_pos = vec3(0, 0, 30);
     cow_pos = vec3(cowX, cowY, cowZ);
 
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
@@ -271,7 +278,6 @@ function drawPointLight(){
     gl.uniform4fv(pointLightVColor, pointLightColor);
 
     // pointLight math
-    cam_pos = vec3(0, 0, 30);
     pointLightPos = vec3(pointLightX, pointLightY, pointlightZ);
 
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
