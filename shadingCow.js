@@ -167,8 +167,15 @@ window.onload = function init() {
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor( 0, 0, 0, 0.5 );
+
+    drawCow();
+
+    drawPointLight();
     
 
+}
+
+function drawCow() {
     // staticProgram stuff
     gl.useProgram(staticProgram);
     gl.enableVertexAttribArray(vPosition);
@@ -201,7 +208,9 @@ function render() {
 
     gl.uniformMatrix4fv(MVPlocation, false, flatten(MVP)); // send MVP to html
     gl.drawElements(gl.TRIANGLES, cowFaces.length, gl.UNSIGNED_SHORT, 0);
-    
+}
+
+function drawPointLight(){
     // pointLightProgram stuff
     gl.useProgram(pointLightProgram);
     gl.enableVertexAttribArray(pointLightVPosition);
@@ -213,7 +222,6 @@ function render() {
     gl.uniformMatrix4fv(pointLightMVPlocation, false, flatten(pointLightMVP));
 
     gl.drawElements(gl.LINES, pointLightIndices.length, gl.UNSIGNED_SHORT, 0);
-
 }
 
 function getPointLightVertices(){
