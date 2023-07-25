@@ -418,32 +418,40 @@ function getPointLightIndices(){
     ];
 }
 function getSpotLightVertices() {
-    let vertices = [
-        0, 1, 0,    // Apex of the cone
-        -1, -1, 1,  // Base vertex 1
-        1, -1, 1,   // Base vertex 2
-        1, -1, -1,  // Base vertex 3
-        -1, -1, -1, // Base vertex 4
-    ];
+    let numBaseVertices = 20; // Increase this number for a smoother base
+    let vertices = [];
+
+    // Apex of the cone
+    vertices.push(0, 1, 0);
+
+    // Base vertices
+    for (let i = 0; i < numBaseVertices; i++) {
+        let theta = (i / numBaseVertices) * Math.PI * 2;
+        let x = Math.cos(theta);
+        let z = Math.sin(theta);
+        vertices.push(x, -1, z); // Scale down the vertices to adjust the size of the cone
+    }
 
     return vertices.map(e => {
         return e * 0.5; // Scale down the vertices to adjust the size of the cone
     });
 }
 function getSpotLightIndices() {
-    return [
-        // Base of the cone
-        1, 2,
-        2, 3,
-        3, 4,
-        4, 1,
+    let numBaseVertices = 20; // Should match the value used in getSpotLightVertices
+    let indices = [];
 
-        // Sides of the cone
-        0, 1,
-        0, 2,
-        0, 3,
-        0, 4,
-    ];
+    // Base of the cone
+    for (let i = 1; i <= numBaseVertices; i++) {
+        indices.push(i, (i % numBaseVertices) + 1);
+    }
+
+    // Sides of the cone
+    let apexIndex = 0;
+    for (let i = 1; i <= numBaseVertices; i++) {
+        indices.push(apexIndex, i);
+    }
+
+    return indices;
 }
 function resetCow() {
     cowX = initialCowX;
