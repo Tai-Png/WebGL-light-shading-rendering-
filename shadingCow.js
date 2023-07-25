@@ -196,10 +196,7 @@ window.onload = function init() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pointLightIndices), gl.STATIC_DRAW);
 
-    
-
     setInterval(rotateCube, 100);
-
 
 	render();
 }
@@ -216,12 +213,13 @@ function render() {
 }
 
 function rotateCube(){
-    
-    pointlightZ = r * Math.cos(t);
-    pointLightX = r * Math.sin(t);
+    if(autoRotatePointLight) {
+        pointlightZ = r * Math.cos(t);
+        pointLightX = r * Math.sin(t);
         t += 0.1;
-    
         render();    
+    }
+    
 }
 
 function calculateNormals() {
@@ -313,6 +311,10 @@ function drawPointLight(){
         0, 0, 0, 1
     );
     modelmatrix = mult(mult(rotate(pointLightRotationX, [1, 0, 0]), rotate(pointLightRotationY, [0, 1, 0])), rotate(pointLightRotationZ, [0, 0, 1]));
+    console.log(pointLightX);
+    console.log(pointLightY);
+    console.log(pointlightZ);
+
     modelmatrix = mult(modelmatrix, translate(pointLightX, pointLightY, pointlightZ));
 
     pointLightMVP = mat4();
