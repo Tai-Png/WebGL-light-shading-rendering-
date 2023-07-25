@@ -419,34 +419,30 @@ function getPointLightIndices(){
 }
 function getSpotLightVertices() {
     let vertices = [
-        -1, -1, -1,
-         1, -1, -1,
-         1,  1, -1,
-        -1,  1, -1,
-        -1, -1,  1,
-         1, -1,  1,
-         1,  1,  1,
-        -1,  1,  1,
+        0, 1, 0,    // Apex of the cone
+        -1, -1, 1,  // Base vertex 1
+        1, -1, 1,   // Base vertex 2
+        1, -1, -1,  // Base vertex 3
+        -1, -1, -1, // Base vertex 4
     ];
-    
+
     return vertices.map(e => {
-        return e/4
+        return e * 0.5; // Scale down the vertices to adjust the size of the cone
     });
 }
 function getSpotLightIndices() {
     return [
-        0, 1,
+        // Base of the cone
         1, 2,
         2, 3,
-        3, 0,
-        4, 5,
-        5, 6,
-        6, 7,
-        7, 4,
+        3, 4,
+        4, 1,
+
+        // Sides of the cone
+        0, 1,
+        0, 2,
+        0, 3,
         0, 4,
-        1, 5,
-        2, 6,
-        3, 7,
     ];
 }
 function resetCow() {
