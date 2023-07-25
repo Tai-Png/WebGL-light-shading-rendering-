@@ -15,7 +15,6 @@ let cowFaces = get_faces();
 cowFaces = flatten(cowFaces).map(function (element) {
     return element - 1;
 });
-console.log(cowFaces);
 var cowX = 0;
 var cowY = 0;
 var cowZ = 0;
@@ -51,7 +50,9 @@ var pointLightIBuffer;
 var pointLightVPosition;
 var pointLightVertices = getPointLightVertices();
 var pointLightIndices = getPointLightIndices();
-console.log(pointLightIndices);
+// pointLightIndices = flatten(pointLightIndices).map(function (element) {
+//     return element - 1;
+// });
 var pointLightMVPlocation;
 var pointLightMVP = mat4(1, 0, 0, 0,
                         0, 1, 0, 0,
@@ -137,11 +138,12 @@ window.onload = function init() {
     vPosition = gl.getAttribLocation( staticProgram, "vPosition" ); 
     gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 ); 
     gl.enableVertexAttribArray( vPosition );
+    vColor = gl.getUniformLocation(staticProgram, "vColor");
+    MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
+
     iBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cowFaces), gl.STATIC_DRAW);
-    MVPlocation = gl.getUniformLocation(staticProgram, "MVP");
-    vColor = gl.getUniformLocation(staticProgram, "vColor");
 
     // pointLight program buffer
     pointLightVBuffer = gl.createBuffer();
@@ -150,11 +152,14 @@ window.onload = function init() {
     pointLightVPosition = gl.getAttribLocation( pointLightProgram, "vPosition");
     gl.vertexAttribPointer( pointLightVPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(pointLightVPosition);
+    pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
+    pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
+
+
     pointLightIBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pointLightIndices), gl.STATIC_DRAW);
-    pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
-    pointLightVColor = gl.getUniformLocation(pointLightProgram, "vColor");
+
 
 	render();
 }
@@ -168,6 +173,7 @@ function render() {
     gl.useProgram(staticProgram);
     gl.enableVertexAttribArray(vPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
     gl.uniform4fv(vColor, cowColor);
 
@@ -200,12 +206,13 @@ function render() {
     gl.useProgram(pointLightProgram);
     gl.enableVertexAttribArray(pointLightVPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, pointLightVBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pointLightIBuffer);
     gl.vertexAttribPointer( pointLightVPosition, 3, gl.FLOAT, false, 0, 0);
     gl.uniform4fv(pointLightVColor, pointLightColor);
 
     gl.uniformMatrix4fv(pointLightMVPlocation, false, flatten(pointLightMVP));
 
-    gl.drawElements(gl.LINES, pointLightVertices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.LINES, pointLightIndices.length, gl.UNSIGNED_SHORT, 0);
 
 }
 
