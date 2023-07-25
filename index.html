@@ -2,24 +2,67 @@
 <html>
 <p id="debug"></p>
 
-<script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec4 vPosition; 
+<script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+
+
+in vec4 vPosition; 
+in vec3 a_normal;
+
 uniform mat4 MVP;
+
+uniform vec3 u_lightWorldPosition;
+ 
+uniform mat4 u_world;
+uniform mat4 u_worldViewProjection; // This is my MVP
+uniform mat4 u_worldInverseTranspose;
+
+out vec3 v_normal;
+out vec3 v_surfaceToLight;
+
 void main() {
     
     // gl_Position =  MVP * vec4(vPosition.xyz, 1);
     gl_Position =  MVP * vPosition;
 
-    
+    // orient the normals and pass to the fragment shader
+    v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+    // compute the world position of the surface
+    vec3 surfaceWorldPosition = (u_world * vPosition).xyz;
+    // compute the vector of the surface to the light
+    // and pass it to the fragment shader
+    v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
 }
 </script>
-<script id="fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+<script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+
 uniform vec4 vColor;
+
+// we need to declare an output for the fragment shader
+out vec4 outColor;
+
+
 void main() {
+    // because v_normal is a varying it's interpolated
+    // so it will not be a uint vector. Normalizing it
+    // will make it a unit vector again
+    vec3 normal = normalize(v_normal);
 
-    gl_FragColor = vColor;
+    vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
 
+    // compute the light by taking the dot product
+    // of the normal to the light's reverse direction
+    float light = dot(v_normal, surfaceToLightDirection);
+
+    
+    outColor = vColor;
+    
+    // Lets multiply just the color portion (not the alpha)
+    // by the light
+    outColor.rgb *= light;
 }
 </script>
 

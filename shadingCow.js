@@ -11,7 +11,6 @@ var modelmatrix;
 var viewMatrix;
 var projectionMatrix;
 
-
 var cowProgram;
 var cowIBuffer;
 var cowVBuffer;
@@ -47,6 +46,7 @@ function resetCow() {
 
     render();
 }
+var cowNormals;
 
 
 var pointLightX = 8;
@@ -121,6 +121,8 @@ window.onload = function init() {
     });
 
     gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);    
+    gl.cullFace(gl.BACK);   
 
     // initShaders
     cowProgram = initShaders( gl, "vertex-shader", "fragment-shader" );
@@ -130,7 +132,7 @@ window.onload = function init() {
     cowVBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cowVBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(cowVertices), gl.STATIC_DRAW); 
-    cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" ); 
+    cowVPosition = gl.getAttribLocation( cowProgram, "vPosition" );
     gl.vertexAttribPointer( cowVPosition, 3, gl.FLOAT, false, 0, 0 ); 
     gl.enableVertexAttribArray( cowVPosition );
     cowVColor = gl.getUniformLocation(cowProgram, "vColor");
@@ -166,7 +168,24 @@ function render() {
 
     drawPointLight();
     
+}
 
+function computeNormals() {
+    cowNormals = Array(cowVertices.length);
+    cowFaces.forEach((e) => {
+        let v1 = normalize(subtract(cowVertices[e[0]-1],cowVertices[e[1]-1]));
+        let v2 = normalize(subtract(cowVertices[e[0]-1],cowVertices[e[2]-1]));
+        let norm = normalize(cross(v1,v2));
+        for(let i = 0; i < 3; i++) {
+            if (cowNormals[e[i]-1]){
+                cowNormals[e[i]-1] = add(cowNormals[e[i]-1],norm).map(z=>z/2);
+            }else{
+                cowNormals[e[i]-1] = vec3(...norm);
+            }
+        }
+    });
+    cowNormals = flatten(cowNormals);
+    return cowNormals;
 }
 
 function drawCow() {
