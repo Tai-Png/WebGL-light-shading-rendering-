@@ -61,10 +61,12 @@
         }
 
         outColor = vColor;
+        outColor.rgb *= light;
+        outColor.rgb += specular;
 
-        outColor.rgb *= light * u_lightColor;
-
-        outColor.rgb += specular * u_specularColor;
+        // If i want the light to have color, comment out the above and uncomment the bottom
+        // outColor.rgb *= light * u_lightColor;
+        // outColor.rgb += specular * u_specularColor;
     }
 </script>
 
