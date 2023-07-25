@@ -50,7 +50,7 @@ function resetCow() {
 }
 var cowNormals;
 
-
+var pointLight_initial_pos = vec3(8, 5, 5);
 var pointLightX = 8;
 var pointLightY = 5;
 var pointlightZ = 5;
@@ -69,7 +69,8 @@ var pointLightMVP;
 var pointLightVColor;
 var pointLightColor = vec4(0, 0, 1, 1);
 var autoRotatePointLight = true;
-var pointLightRotationSpeed = 5; // Adjust the rotation speed as needed
+var t = (Math.PI)/3;
+var r = 10;
 
 
 var reverseLightDirectionLocation;
@@ -118,6 +119,7 @@ window.onload = function init() {
         if (event.buttons === 1) { 
             cowX += event.movementX/50; 
             cowY -= event.movementY/50; 
+            // pointLightX += event.movementX/50; 
             render();
         }
     });
@@ -196,7 +198,7 @@ window.onload = function init() {
 
     
 
-    setInterval(rotateCube, 500);
+    setInterval(rotateCube, 100);
 
 
 	render();
@@ -210,16 +212,16 @@ function render() {
     gl.clearColor( 0, 0, 0, 0.5 );
 
     drawCow();
-
     drawPointLight();
-    
 }
 
 function rotateCube(){
-    if(autoRotatePointLight) {
-        pointLightRotationY += pointLightRotationSpeed; 
-        render();
-    }
+    
+    pointlightZ = r * Math.cos(t);
+    pointLightX = r * Math.sin(t);
+        t += 0.1;
+    
+        render();    
 }
 
 function calculateNormals() {
@@ -293,20 +295,25 @@ function drawPointLight(){
     // pointLight math
     cam_pos = vec3(0, 0, 30);
     pointLightPos = vec3(pointLightX, pointLightY, pointlightZ);
-    pointLight_initial_pos = vec3(8, 5, 5);
 
+    viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
     
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
-
+// Matteo said that model should be identity so ill try
+    // modelmatrix = mat4(      
+    //     1, 0, 0, pointLightX,
+    //     0, 1, 0, pointLightY,
+    //     0, 0, 1, pointlightZ,
+    //     0, 0, 0, 1
+    // );
     modelmatrix = mat4(
-        1, 0, 0, pointLightX,
-        0, 1, 0, pointLightY,
-        0, 0, 1, pointlightZ,
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
         0, 0, 0, 1
     );
     modelmatrix = mult(mult(rotate(pointLightRotationX, [1, 0, 0]), rotate(pointLightRotationY, [0, 1, 0])), rotate(pointLightRotationZ, [0, 0, 1]));
     modelmatrix = mult(modelmatrix, translate(pointLightX, pointLightY, pointlightZ));
-    viewMatrix = lookAt(cam_pos, pointLight_initial_pos, vec3([0, 1, 0]));
 
     pointLightMVP = mat4();
     pointLightMVP = mult(mult(projectionMatrix, viewMatrix), modelmatrix);
