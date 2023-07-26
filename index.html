@@ -47,7 +47,9 @@
     uniform float u_limit;
     uniform vec3 u_lightColor;
     uniform vec3 u_specularColor;
-    
+    uniform float u_innerLimit;
+    uniform float u_outerLimit;     
+
     out vec4 outColor;
 
     void main() {
@@ -61,20 +63,18 @@
         halfVector[1] = normalize(surfaceToLightDirection[1] + surfaceToViewDirection);
 
         // SpotLight calculations
+        float limitRange = u_innerLimit - u_outerLimit;
         float spotlightlight = 0.0;
         float spotlightspecular = 0.0;
         float dotFromDirection = dot(surfaceToLightDirection[1], -(u_lightDirection));
-        if (dotFromDirection >= u_limit) {
-            spotlightlight = dot(normal, surfaceToLightDirection[1]);
-          if (spotlightlight > 0.0) {
-            spotlightspecular = pow(dot(normal, halfVector[1]), u_shininess);
-          }
-        }
+        float inLight = clamp((dotFromDirection - u_outerLimit) / limitRange, 0.0, 1.0);
+        spotlightlight = inLight * dot(normal, surfaceToLightDirection[1]);
+        spotlightspecular = inLight * pow(dot(normal, halfVector[1]), u_shininess);
 
         // PointLight calculations
         float light = 0.0;
         float specular = 0.0;
-        
+
         light = dot(normal, surfaceToLightDirection[0]);
         if (light > 0.0) {
             specular = pow(dot(normal, halfVector[0]), u_shininess);
@@ -83,8 +83,6 @@
         outColor = vColor;
         outColor.rgb *= (light + spotlightlight);
         outColor.rgb += (spotlightspecular + specular);
-        // outColor = (vec4(dotFromDirection,0,0,1));
-
 
         // If i want the light to have color, comment out the above and uncomment the bottom
         // outColor.rgb *= light * u_lightColor;
@@ -99,8 +97,6 @@
 <script type="text/javascript" src="Common/MV.js"></script>
 <script type="text/javascript" src="cow.js"></script>
 <script type="text/javascript" src="shadingCow.js"></script>
-
-<!-- <link rel="stylesheet" href="style.css"> -->
 
 
 <body>

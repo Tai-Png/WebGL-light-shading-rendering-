@@ -21,9 +21,11 @@ var shininess = 150;
 var lightColorLocation; 
 var specularColorLocation; 
 var lightDirectionLocation;
-var limitLocation;
 var lightDirection = vec3(0,0,1);
-var limit = radians(10);
+var innerLimit = radians(10);
+var outerLimit = radians(15);
+var innterLimitLocation;
+var outerLimitLocation;
 
 var vao;
 var cowProgram;
@@ -186,21 +188,20 @@ window.onload = function init() {
     lightColorLocation = gl.getUniformLocation(cowProgram, "u_lightColor");
     specularColorLocation = gl.getUniformLocation(cowProgram, "u_specularColor");
     lightDirectionLocation = gl.getUniformLocation(cowProgram, "u_lightDirection");
-    limitLocation = gl.getUniformLocation(cowProgram, "u_limit");
-
+    innterLimitLocation = gl.getUniformLocation(cowProgram, "u_innerLimit");
+    outerLimitLocation = gl.getUniformLocation(cowProgram, "u_outerLimit");
+    
     pointLightVColorLocation = gl.getUniformLocation(pointLightProgram, "vColor");
     pointLightMVPlocation = gl.getUniformLocation(pointLightProgram, "MVP");
 
     spotLightVColorLocation = gl.getUniformLocation(spotLightProgram, "vColor");
     spotLightMVPLocation = gl.getUniformLocation(spotLightProgram, "MVP");
     
-
     // Enable attribArrays
     gl.enableVertexAttribArray( cowVPosition );
     gl.enableVertexAttribArray(normalLocation);
     gl.enableVertexAttribArray(pointLightVPosition);
     gl.enableVertexAttribArray(spotLightVposition);
-
 
     // Create buffer
     cowVBuffer = gl.createBuffer();
@@ -341,9 +342,9 @@ function drawCow() {
     // gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
 
     
-
     gl.uniform3fv(lightDirectionLocation, (lightDirection));
-    gl.uniform1f(limitLocation, Math.cos(limit));
+    gl.uniform1f(innterLimitLocation, Math.cos(innerLimit));
+    gl.uniform1f(outerLimitLocation, Math.cos(outerLimit));
 
     // Cow math
     cow_pos = vec3(cowX, cowY, cowZ);
