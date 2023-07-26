@@ -55,31 +55,31 @@
         vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
         vec3 surfaceToViewDirection = normalize(v_surfaceToView);
         vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
-        // I BELIEVE THIS CODE IS FOR THE SPOTLIGHT WHICH LOOKS UGLY TO ME
-        // I THINK I USED SPOTLIGHT CALCULATIONS ON THE POINTLIGHT THATS WHY IT LOOKED SO UGLY
 
-
-        // float light = 0.0;
-        // float specular = 0.0;
-        // float dotFromDirection = dot(surfaceToLightDirection, -u_lightDirection);
-        //  if (dotFromDirection >= u_limit) {
-        //    light = dot(normal, surfaceToLightDirection);
-        //    if (light > 0.0) {
-        //        specular = pow(dot(normal, halfVector), u_shininess);
-        //    }
-        //}
-
-
-        // THIS CODE IS FOR THE POINTLIGHT 
-        float light = dot(normal, surfaceToLightDirection);
-        float specular = 0.0;
-        if (light > 0.0) {
-            specular = pow(dot(normal, halfVector), u_shininess);
-        }
+        float dotFromDirection = dot(surfaceToLightDirection, -u_lightDirection);
+        float inLight = step(u_limit, dotFromDirection);
+        float light = inLight * dot(normal, surfaceToLightDirection);
+        float specular = inLight * pow(dot(normal, halfVector), u_shininess);
 
         outColor = vColor;
         outColor.rgb *= light;
         outColor.rgb += specular;
+
+
+
+
+        // THIS CODE IS FOR THE POINTLIGHT 
+        //float light = dot(normal, surfaceToLightDirection);
+        //float specular = 0.0;
+        //if (light > 0.0) {
+        //    specular = pow(dot(normal, halfVector), u_shininess);
+        //}
+
+        //outColor = vColor;
+        //outColor.rgb *= spotlightlight;
+        //outColor.rgb += spotlightspecular;
+        
+         
 
         // If i want the light to have color, comment out the above and uncomment the bottom
         // outColor.rgb *= light * u_lightColor;

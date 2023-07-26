@@ -21,8 +21,8 @@ var lightColorLocation;
 var specularColorLocation; 
 var lightDirectionLocation;
 var limitLocation;
-var lightDirection = [0, 0, 1];
-var limit = radians(30);
+var lightDirection = vec3(0,0,1);
+var limit = radians(10);
 
 var vao;
 var cowProgram;
@@ -83,7 +83,7 @@ var spotLightZ = 6;
 var spotLightRotationX = 0;
 var spotLightRotationY = 0;
 var spotLightRotationZ = 0;
-var spotLightPos;
+var spotLightPos = vec3(spotLightX, spotLightY, spotLightZ);
 var spotLightVBuffer;
 var spotLightIBuffer;
 var spotLightVposition;
@@ -93,8 +93,9 @@ var spotLightIndices = getSpotLightIndices();
 var spotLightMVPLocation;
 var spotLightMVP;
 var spotLightColor = vec4(0, 1, 0, 1);
-var autoRotateSpotLight = true;
+var autoPanSpotLight = true;
 
+var lmat = mat4();
 
 
 document.oncontextmenu = (event) => {
@@ -243,7 +244,7 @@ function render() {
     gl.clearColor( 0, 0, 0, 0.5 );
 
     drawCow();
-    drawPointLight();
+    // drawPointLight();
     drawSpotLight();
 }
 
@@ -255,7 +256,7 @@ function drawSpotLight(){
     gl.uniform4fv(spotLightVColorLocation, spotLightColor);
 
     // spotLight math
-    spotLightPos = vec3(spotLightX, spotLightY, spotLightZ);
+
 
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
 
@@ -286,6 +287,15 @@ function rotateCube(){
         render();    
     }
 }
+let increment = 0.01;
+function panSpotlight(){
+    if(panSpotlight) {
+        lightDirection[0] += increment;
+        if (lightDirection[0] > 1 || lightDirection[0] < -1){
+            increment *= -1;
+        }
+    }
+}
 
 function calculateNormals() {
     cowNormals = Array(cowVertices.length);
@@ -314,13 +324,19 @@ function drawCow() {
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
 
     // Sending values to HTML
-    gl.uniform3fv(lightWorldPositionLocation, ([pointLightX, pointLightY, pointlightZ]));
+    // gl.uniform3fv(lightWorldPositionLocation, ([pointLightX, pointLightY, pointlightZ]));
+    gl.uniform3fv(lightWorldPositionLocation, spotLightPos);
     gl.uniform4fv(cowVColor, cowColor);
     gl.uniform3fv(viewWorldPositionLocation, cam_pos);
     gl.uniform1f(shininessLocation, shininess);
     gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
     gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
-    gl.uniform3fv(lightDirectionLocation, lightDirection);
+
+    // Calculate lightdirection
+    lightDirection = subtract(vec3(0,0,0), spotLightPos);
+    lightDirection = normalize(lightDirection);
+
+    gl.uniform3fv(lightDirectionLocation, (lightDirection));
     gl.uniform1f(limitLocation, Math.cos(limit));
 
     // Cow math
