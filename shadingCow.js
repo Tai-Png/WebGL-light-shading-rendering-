@@ -63,7 +63,7 @@ var pointLightRotationX = 0;
 var pointLightRotationY = 0;
 var pointLightRotationZ = 0;
 var pointLightProgram;
-var pointLightPos;
+var pointLightPos = vec3(pointLightX, pointLightY, pointlightZ);
 var pointLightVBuffer;
 var pointLightIBuffer;
 var pointLightVPosition;
@@ -297,9 +297,7 @@ function rotateCube(){
 
 function panSpotlight(){
     if(autoPanSpotLight) {
-        console.log(lightDirection)
         lightDirection[0] += increment;
-        console.log(lightDirection)
 
         if (lightDirection[0] > 1 || lightDirection[0] < -1){
             increment *= -1;
@@ -345,7 +343,6 @@ function drawCow() {
     
 
     gl.uniform3fv(lightDirectionLocation, (lightDirection));
-    console.log(Math.cos(limit));
     gl.uniform1f(limitLocation, Math.cos(limit));
 
     // Cow math
