@@ -9,7 +9,6 @@
 
     uniform vec3 u_lightWorldPosition[2];
     uniform vec3 u_viewWorldPosition;
-
     uniform mat4 MVP; // Resource calls it u_worldViewProjection
     uniform mat4 u_world;
     uniform mat4 u_worldInverseTranspose;
@@ -42,7 +41,6 @@
     in vec3 v_surfaceToLight[2];
     in vec3 v_surfaceToView;
     
-
     uniform vec4 vColor;
     uniform float u_shininess;
     uniform vec3 u_lightDirection;
@@ -57,16 +55,15 @@
         vec3 surfaceToLightDirection[2];
         surfaceToLightDirection[0] = normalize(v_surfaceToLight[0]);
         surfaceToLightDirection[1] = normalize(v_surfaceToLight[1]);
-
         vec3 surfaceToViewDirection = normalize(v_surfaceToView);
-        vec3 halfVector[3];
+        vec3 halfVector[2];
         halfVector[0] = normalize(surfaceToLightDirection[0] + surfaceToViewDirection);
         halfVector[1] = normalize(surfaceToLightDirection[1] + surfaceToViewDirection);
 
-
+        // SpotLight calculations
         float spotlightlight = 0.0;
         float spotlightspecular = 0.0;
-        float dotFromDirection = dot(surfaceToLightDirection[1], -u_lightDirection);
+        float dotFromDirection = dot(surfaceToLightDirection[1], -(u_lightDirection));
         if (dotFromDirection >= u_limit) {
             spotlightlight = dot(normal, surfaceToLightDirection[1]);
           if (spotlightlight > 0.0) {
@@ -74,21 +71,20 @@
           }
         }
 
-
-
-
-        // THIS CODE IS FOR THE POINTLIGHT 
-        float light = dot(normal, surfaceToLightDirection[0]);
+        // PointLight calculations
+        float light = 0.0;
         float specular = 0.0;
+        
+        light = dot(normal, surfaceToLightDirection[0]);
         if (light > 0.0) {
             specular = pow(dot(normal, halfVector[0]), u_shininess);
         }
 
         outColor = vColor;
-        outColor.rgb *= light + spotlightlight;
-        outColor.rgb += spotlightspecular + specular;
-        
-         
+        outColor.rgb *= (light + spotlightlight);
+        outColor.rgb += (spotlightspecular + specular);
+        // outColor = (vec4(dotFromDirection,0,0,1));
+
 
         // If i want the light to have color, comment out the above and uncomment the bottom
         // outColor.rgb *= light * u_lightColor;

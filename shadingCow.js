@@ -17,7 +17,7 @@ var lightWorldPositionLocation;
 var worldLocation;
 var viewWorldPositionLocation;
 var shininessLocation;
-var shininess = 50;
+var shininess = 150;
 var lightColorLocation; 
 var specularColorLocation; 
 var lightDirectionLocation;
@@ -31,7 +31,7 @@ var cowIBuffer;
 var cowVBuffer;
 var cowVPosition;
 var cowVColor;
-var cowColor = vec4(0, 0, 1, 1);
+var cowColor = vec4(0.6, 0.4, 0.1, 1);
 var cowVertices = get_vertices();
 var cowFaces = get_faces();
 cowFaces = flatten(cowFaces).map(function (element) {
