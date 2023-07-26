@@ -83,7 +83,7 @@ var spotLightZ = 6;
 var spotLightRotationX = 0;
 var spotLightRotationY = 0;
 var spotLightRotationZ = 0;
-var spotLightPos = vec3(spotLightX, spotLightY, spotLightZ);
+var spotLightPos = vec3(0, 6, 6);
 var spotLightVBuffer;
 var spotLightIBuffer;
 var spotLightVposition;
@@ -135,6 +135,11 @@ window.onload = function init() {
     document.addEventListener("keydown", function(event) {
         if (event.key === "p" || event.key === "P") {
             autoRotatePointLight = !autoRotatePointLight;   
+        }
+    });
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "s" || event.key === "S") {
+            autoPanSpotLight = !autoPanSpotLight;   
         }
     });
     
@@ -333,12 +338,13 @@ function drawCow() {
     gl.uniform4fv(cowVColor, cowColor);
     gl.uniform3fv(viewWorldPositionLocation, cam_pos);
     gl.uniform1f(shininessLocation, shininess);
-    gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
-    gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
+    // gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
+    // gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
 
     
 
     gl.uniform3fv(lightDirectionLocation, (lightDirection));
+    console.log(Math.cos(limit));
     gl.uniform1f(limitLocation, Math.cos(limit));
 
     // Cow math
