@@ -7,14 +7,14 @@
     in vec4 vPosition; 
     in vec3 a_normal;
 
-    uniform vec3 u_lightWorldPosition;
+    uniform vec3 u_lightWorldPosition[2];
     uniform vec3 u_viewWorldPosition;
 
     uniform mat4 MVP; // Resource calls it u_worldViewProjection
     uniform mat4 u_world;
     uniform mat4 u_worldInverseTranspose;
 
-    out vec3 v_surfaceToLight;
+    out vec3 v_surfaceToLight[2];
     out vec3 v_normal;
     out vec3 v_surfaceToView;
 
@@ -26,7 +26,9 @@
 
             vec3 surfaceWorldPosition = (u_world * vPosition).xyz;
 
-            v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+            v_surfaceToLight[0] = u_lightWorldPosition[0] - surfaceWorldPosition;
+            v_surfaceToLight[1] = u_lightWorldPosition[1] - surfaceWorldPosition;
+
 
             v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
     }
@@ -37,7 +39,7 @@
 <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
     precision highp float;
     in vec3 v_normal;
-    in vec3 v_surfaceToLight;
+    in vec3 v_surfaceToLight[2];
     in vec3 v_surfaceToView;
     
 
@@ -52,37 +54,39 @@
 
     void main() {
         vec3 normal = normalize(v_normal);
-        vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
-        vec3 surfaceToViewDirection = normalize(v_surfaceToView);
-        vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+        vec3 surfaceToLightDirection[2];
+        surfaceToLightDirection[0] = normalize(v_surfaceToLight[0]);
+        surfaceToLightDirection[1] = normalize(v_surfaceToLight[1]);
 
-        float light = 0.0;
-        float specular = 0.0;
-        float dotFromDirection = dot(surfaceToLightDirection, -u_lightDirection);
+        vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+        vec3 halfVector[3];
+        halfVector[0] = normalize(surfaceToLightDirection[0] + surfaceToViewDirection);
+        halfVector[1] = normalize(surfaceToLightDirection[1] + surfaceToViewDirection);
+
+
+        float spotlightlight = 0.0;
+        float spotlightspecular = 0.0;
+        float dotFromDirection = dot(surfaceToLightDirection[1], -u_lightDirection);
         if (dotFromDirection >= u_limit) {
-          light = dot(normal, surfaceToLightDirection);
-          if (light > 0.0) {
-            specular = pow(dot(normal, halfVector), u_shininess);
+            spotlightlight = dot(normal, surfaceToLightDirection[1]);
+          if (spotlightlight > 0.0) {
+            spotlightspecular = pow(dot(normal, halfVector[1]), u_shininess);
           }
         }
-
-        outColor = vColor;
-        outColor.rgb *= light;
-        outColor.rgb += specular;
 
 
 
 
         // THIS CODE IS FOR THE POINTLIGHT 
-        //float light = dot(normal, surfaceToLightDirection);
-        //float specular = 0.0;
-        //if (light > 0.0) {
-        //    specular = pow(dot(normal, halfVector), u_shininess);
-        //}
+        float light = dot(normal, surfaceToLightDirection[0]);
+        float specular = 0.0;
+        if (light > 0.0) {
+            specular = pow(dot(normal, halfVector[0]), u_shininess);
+        }
 
-        //outColor = vColor;
-        //outColor.rgb *= spotlightlight;
-        //outColor.rgb += spotlightspecular;
+        outColor = vColor;
+        outColor.rgb *= light + spotlightlight;
+        outColor.rgb += spotlightspecular + specular;
         
          
 

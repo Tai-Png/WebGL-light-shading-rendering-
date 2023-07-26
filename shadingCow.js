@@ -13,6 +13,7 @@ var projectionMatrix;
 var worldInverseTransposeLocation;
 var reverseLightDirectionLocation;
 var lightWorldPositionLocation;
+
 var worldLocation;
 var viewWorldPositionLocation;
 var shininessLocation;
@@ -177,6 +178,7 @@ window.onload = function init() {
     cowMVPlocation = gl.getUniformLocation(cowProgram, "MVP");
     cowVColor = gl.getUniformLocation(cowProgram, "vColor");
     lightWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_lightWorldPosition");
+
     worldInverseTransposeLocation = gl.getUniformLocation(cowProgram, "u_worldInverseTranspose");
     worldLocation = gl.getUniformLocation(cowProgram, "u_world");
     viewWorldPositionLocation = gl.getUniformLocation(cowProgram, "u_viewWorldPosition");
@@ -251,7 +253,7 @@ function render() {
     gl.clearColor( 0, 0, 0, 0.5 );
 
     drawCow();
-    // drawPointLight();
+    drawPointLight();
     drawSpotLight();
 }
 
@@ -333,8 +335,7 @@ function drawCow() {
     gl.vertexAttribPointer(cowVPosition, 3, gl.FLOAT, false, 0, 0);
 
     // Sending values to HTML
-    // gl.uniform3fv(lightWorldPositionLocation, ([pointLightX, pointLightY, pointlightZ]));
-    gl.uniform3fv(lightWorldPositionLocation, spotLightPos);
+    gl.uniform3fv(lightWorldPositionLocation, new Float32Array([...pointLightPos, ...spotLightPos]));
     gl.uniform4fv(cowVColor, cowColor);
     gl.uniform3fv(viewWorldPositionLocation, cam_pos);
     gl.uniform1f(shininessLocation, shininess);
