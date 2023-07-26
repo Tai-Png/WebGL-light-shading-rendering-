@@ -94,16 +94,13 @@ var spotLightMVPLocation;
 var spotLightMVP;
 var spotLightColor = vec4(0, 1, 0, 1);
 var autoPanSpotLight = true;
+var increment = 0.01;
 
-var lmat = mat4();
 
 
 document.oncontextmenu = (event) => {
     event.preventDefault();
 };
-
-
-
 
 
 // ------------------------------------ INIT ---------------------------------------
@@ -231,7 +228,12 @@ window.onload = function init() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, spotLightIBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(spotLightIndices), gl.STATIC_DRAW);
 
+    // Calculate lightdirection
+    lightDirection = subtract(vec3(0,0,0), spotLightPos);
+    lightDirection = normalize(lightDirection);
+
     setInterval(rotateCube, 10);
+    setInterval(panSpotlight, 10);
 
 	render();
 }
@@ -256,8 +258,6 @@ function drawSpotLight(){
     gl.uniform4fv(spotLightVColorLocation, spotLightColor);
 
     // spotLight math
-
-
     viewMatrix = lookAt(cam_pos, cow_initial_pos, vec3([0, 1, 0]));
 
     projectionMatrix = perspective(fov, canvas.width / canvas.height, 0.1, 100.0);
@@ -287,13 +287,17 @@ function rotateCube(){
         render();    
     }
 }
-let increment = 0.01;
+
 function panSpotlight(){
-    if(panSpotlight) {
+    if(autoPanSpotLight) {
+        console.log(lightDirection)
         lightDirection[0] += increment;
+        console.log(lightDirection)
+
         if (lightDirection[0] > 1 || lightDirection[0] < -1){
             increment *= -1;
         }
+        render();
     }
 }
 
@@ -332,9 +336,7 @@ function drawCow() {
     gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
     gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
 
-    // Calculate lightdirection
-    lightDirection = subtract(vec3(0,0,0), spotLightPos);
-    lightDirection = normalize(lightDirection);
+    
 
     gl.uniform3fv(lightDirectionLocation, (lightDirection));
     gl.uniform1f(limitLocation, Math.cos(limit));
