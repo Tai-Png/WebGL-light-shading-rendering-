@@ -17,7 +17,7 @@ var lightWorldPositionLocation;
 var worldLocation;
 var viewWorldPositionLocation;
 var shininessLocation;
-var shininess = 150;
+var shininess = 200;
 var lightColorLocation; 
 var specularColorLocation; 
 var lightDirectionLocation;
@@ -154,7 +154,6 @@ window.onload = function init() {
         }
     });
 
-
     document.addEventListener("keydown", function(event) {
         if (event.key === "ArrowUp") {
             cowZ += 1; 
@@ -251,7 +250,7 @@ function render() {
     gl.enable(gl.CULL_FACE);    
     gl.cullFace(gl.BACK);  
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.clearColor( 0, 0, 0, 0.5 );
+    gl.clearColor( 0, 0, 0, 0 );
 
     drawCow();
     drawPointLight();
@@ -299,6 +298,8 @@ function rotateCube(){
 function panSpotlight(){
     if(autoPanSpotLight) {
         lightDirection[0] += increment;
+        // lightDirection[2] += increment;
+
 
         if (lightDirection[0] > 1 || lightDirection[0] < -1){
             increment *= -1;
@@ -338,10 +339,10 @@ function drawCow() {
     gl.uniform4fv(cowVColor, cowColor);
     gl.uniform3fv(viewWorldPositionLocation, cam_pos);
     gl.uniform1f(shininessLocation, shininess);
-    // gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
-    // gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
+    gl.uniform3fv(lightColorLocation, vec3(1, 0, 0));  // red light
+    gl.uniform3fv(specularColorLocation, vec3(1, 0, 0));  // red light
 
-    
+
     gl.uniform3fv(lightDirectionLocation, (lightDirection));
     gl.uniform1f(innterLimitLocation, Math.cos(innerLimit));
     gl.uniform1f(outerLimitLocation, Math.cos(outerLimit));
