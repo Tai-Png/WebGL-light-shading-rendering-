@@ -61,43 +61,29 @@
         vec3 halfVector[2];
         halfVector[0] = normalize(surfaceToLightDirection[0] + surfaceToViewDirection);
         halfVector[1] = normalize(surfaceToLightDirection[1] + surfaceToViewDirection);
-        float lightresult = 0.0;
-        float specularresult = 0.0;
-        float pointlightlight = 0.0;
-        float pointlightspecular = 0.0;
 
         // SpotLight calculations
-        vec4 vColor2;
-        vColor2 = vColor;
+        float limitRange = u_innerLimit - u_outerLimit;
         float spotlightlight = 0.0;
         float spotlightspecular = 0.0;
         float dotFromDirection = dot(surfaceToLightDirection[1], -(u_lightDirection));
-        float inLight = smoothstep(u_outerLimit, u_innerLimit, dotFromDirection);
+        float inLight = clamp((dotFromDirection - u_outerLimit) / limitRange, 0.0, 1.0);
         spotlightlight = inLight * dot(normal, surfaceToLightDirection[1]);
         spotlightspecular = inLight * pow(dot(normal, halfVector[1]), u_shininess);
 
-        lightresult += spotlightlight + pointlightlight;
-        specularresult += spotlightspecular + pointlightlight;
-        
-        vColor2.rgb *= lightresult;
-        vColor2.rgb += specularresult;
-
-
         // PointLight calculations
-        pointlightlight = dot(normal, surfaceToLightDirection[0]);
-        if (pointlightlight > 0.0) {
-            pointlightspecular = pow(dot(normal, halfVector[0]), u_shininess);
+        float light = 0.0;
+        float specular = 0.0;
+
+        light = dot(normal, surfaceToLightDirection[0]);
+        if (light > 0.0) {
+            specular = pow(dot(normal, halfVector[0]), u_shininess);
         }
 
-        lightresult += spotlightlight + pointlightlight;
-        specularresult += spotlightspecular + pointlightlight;
-        vColor2.rgb *= lightresult;
-        vColor2.rgb += specularresult;
+        outColor = vColor;
+        outColor.rgb *= (light + spotlightlight);
+        outColor.rgb += (spotlightspecular + specular);
 
-
-        outColor = vColor2;
-        //outColor.rgb *= u_lightColor * (lightresult);
-        //outColor.rgb += u_specularColor * (specularresult);
 
     }
 </script>

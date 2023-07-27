@@ -298,12 +298,32 @@ function rotateCube(){
 function panSpotlight(){
     if(autoPanSpotLight) {
         lightDirection[0] += increment;
-        // lightDirection[2] += increment;
-
 
         if (lightDirection[0] > 1 || lightDirection[0] < -1){
             increment *= -1;
         }
+        
+        // Update spotlight position based on light direction
+        spotLightPos = vec3(-lightDirection[0], spotLightY, spotLightZ);
+
+        // Recalculate view matrix for spotlight
+        let viewMatrixSpotlight = lookAt(cam_pos, spotLightPos, vec3([0, 1, 0]));
+
+        // Recalculate spotlight MVP matrix
+        let spotLightMVP = mat4();
+        spotLightMVP = mult(mult(projectionMatrix, viewMatrixSpotlight), modelmatrix);
+
+        // Calculate the angle between light direction and z-axis
+        let angleRadians = Math.acos(dot(normalize(lightDirection), vec3(0, 0, 1)));
+
+        // Convert the angle to degrees and update the spotlight rotation around the z-axis
+        
+        spotLightRotationZ = (angleRadians);
+
+        gl.useProgram(spotLightProgram);
+        gl.uniformMatrix4fv(spotLightMVPLocation, false, flatten(spotLightMVP));
+
+        // Render the scene with the updated spotlight position and rotation
         render();
     }
 }
